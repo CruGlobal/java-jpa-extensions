@@ -17,6 +17,10 @@
     <tag>HEAD</tag>
   </scm>
 
+  <properties>
+    <slf4j.version>1.6.6</slf4j.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.aspectj</groupId>
