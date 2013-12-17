@@ -1,17 +1,10 @@
 package org.ccci.gto.persistence;
 
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceException;
-import javax.persistence.PersistenceUnit;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.hibernate.SessionFactory;
-import org.hibernate.dialect.Dialect;
-import org.hibernate.ejb.HibernateEntityManagerFactory;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.exception.GenericJDBCException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -27,13 +20,10 @@ import org.springframework.core.Ordered;
  * @version 04-jul-2011 handles deadlocks
  */
 @Aspect
-public class DeadLockRetryAspect implements Ordered {
+public abstract class DeadLockRetryAspect implements Ordered {
     private static final Logger LOG = LoggerFactory.getLogger(DeadLockRetryAspect.class);
 
     private int order = -1;
-
-    @PersistenceUnit
-    private EntityManagerFactory emf;
 
     /**
      * Deadlock retry. The aspect applies to every service method with the
@@ -98,37 +88,7 @@ public class DeadLockRetryAspect implements Ordered {
      *            the persitence error
      * @return is a deadlock error
      */
-    private boolean isDeadlock(final PersistenceException exception) {
-        final Dialect dialect = getDialect();
-        if (dialect instanceof ErrorCodeAware && exception.getCause() instanceof GenericJDBCException) {
-            if (((ErrorCodeAware) dialect).getDeadlockErrorCodes().contains(getSQLErrorCode(exception))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns the currently used dialect
-     * 
-     * @return the dialect
-     */
-    private Dialect getDialect() {
-        final SessionFactory sessionFactory = ((HibernateEntityManagerFactory) emf).getSessionFactory();
-        return ((SessionFactoryImplementor) sessionFactory).getDialect();
-    }
-
-    /**
-     * extracts the low level sql error code from the
-     * {@link PersistenceException}
-     * 
-     * @param exception
-     *            the persistence exception
-     * @return the low level sql error code
-     */
-    private int getSQLErrorCode(final PersistenceException exception) {
-        return ((GenericJDBCException) exception.getCause()).getSQLException().getErrorCode();
-    }
+    protected abstract boolean isDeadlock(PersistenceException exception);
 
     /** {@inheritDoc} */
     public int getOrder() {

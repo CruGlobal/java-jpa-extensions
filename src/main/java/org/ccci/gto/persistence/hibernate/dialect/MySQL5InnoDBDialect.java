@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.ccci.gto.persistence.ErrorCodeAware;
+import org.ccci.gto.persistence.hibernate.ErrorCodeAware;
 
 public class MySQL5InnoDBDialect extends org.hibernate.dialect.MySQL5InnoDBDialect implements ErrorCodeAware {
     private static final Set<Integer> DEADLOCK_ERROR_CODES = new HashSet<Integer>();

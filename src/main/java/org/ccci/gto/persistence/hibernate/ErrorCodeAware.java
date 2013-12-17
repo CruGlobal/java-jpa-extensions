@@ -1,4 +1,4 @@
-package org.ccci.gto.persistence;
+package org.ccci.gto.persistence.hibernate;
 
 import java.util.Set;
 
