@@ -46,6 +46,13 @@
     </dependency>
   </dependencies>
 
+  <repositories>
+    <repository>
+      <id>maven.gcx.org</id>
+      <url>https://maven.gcx.org</url>
+    </repository>
+  </repositories>
+
   <build>
     <plugins>
       <plugin>
