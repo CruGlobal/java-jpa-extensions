@@ -1,13 +1,13 @@
 package org.ccci.gto.persistence;
 
-import javax.persistence.PersistenceException;
-
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
+
+import javax.persistence.PersistenceException;
 
 /**
  * This Aspect will cause methods to retry if there is a notion of a deadlock.
@@ -40,45 +40,25 @@ public abstract class DeadLockRetryAspect implements Ordered {
      */
     @Around(value = "@annotation(deadLockRetry)", argNames = "deadLockRetry")
     public Object concurrencyRetry(final ProceedingJoinPoint pjp, final DeadLockRetry deadLockRetry) throws Throwable {
-        final Integer retryCount = deadLockRetry.retryCount();
-        Integer deadlockCounter = 0;
-        Object result = null;
-        while (deadlockCounter < retryCount) {
+        int attemptsRemaining = deadLockRetry.retryCount();
+
+        // loop until we complete successfully or have too many deadlock exceptions
+        while (true) {
             try {
-                result = pjp.proceed();
-                break;
-            } catch (final PersistenceException exception) {
-                deadlockCounter = handleException(exception, deadlockCounter, retryCount);
+                // attempt to proceed
+                return pjp.proceed();
+            } catch (final PersistenceException e) {
+                // handle deadlock exceptions when we still have attempts remaining
+                if (attemptsRemaining > 0 && this.isDeadlock(e)) {
+                    LOG.error("Deadlocked", e);
+                    attemptsRemaining--;
+                    continue;
+                }
+
+                // propagate the caught exception
+                throw e;
             }
         }
-        return result;
-    }
-
-    /**
-     * handles the persistence exception. Performs checks to see if the
-     * exception is a deadlock and check the retry count.
-     * 
-     * @param exception
-     *            the persistence exception that could be a deadlock
-     * @param deadlockCounter
-     *            the counter of occured deadlocks
-     * @param retryCount
-     *            the max retry count
-     * @return the deadlockCounter that is incremented
-     */
-    private Integer handleException(final PersistenceException exception, Integer deadlockCounter,
-            final Integer retryCount) {
-        if (isDeadlock(exception)) {
-            deadlockCounter++;
-            LOG.error("Deadlocked", exception);
-            if (deadlockCounter == (retryCount - 1)) {
-                throw exception;
-            }
-        } else {
-            throw exception;
-        }
-
-        return deadlockCounter;
     }
 
     /**
