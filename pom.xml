@@ -60,6 +60,24 @@
   </repositories>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>default-deploy</id>
+              <phase>none</phase>
+            </execution>
+            <execution>
+              <id>public-deploy</id>
+              <phase>deploy</phase>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
