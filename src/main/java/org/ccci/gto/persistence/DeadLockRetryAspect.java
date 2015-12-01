@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 
+import javax.annotation.Nonnull;
 import javax.persistence.PersistenceException;
 
 /**
@@ -68,7 +69,7 @@ public abstract class DeadLockRetryAspect implements Ordered {
      *            the persitence error
      * @return is a deadlock error
      */
-    protected abstract boolean isDeadlock(PersistenceException exception);
+    protected abstract boolean isDeadlock(@Nonnull PersistenceException exception);
 
     /** {@inheritDoc} */
     public int getOrder() {

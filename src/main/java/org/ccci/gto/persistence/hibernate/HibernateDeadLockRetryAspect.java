@@ -1,16 +1,18 @@
 package org.ccci.gto.persistence.hibernate;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceException;
-import javax.persistence.PersistenceUnit;
-
 import org.aspectj.lang.annotation.Aspect;
 import org.ccci.gto.persistence.DeadLockRetryAspect;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.Dialect;
-import org.hibernate.ejb.HibernateEntityManagerFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.exception.GenericJDBCException;
+import org.hibernate.jpa.HibernateEntityManagerFactory;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceException;
+import javax.persistence.PersistenceUnit;
 
 /**
  * This Aspect will cause methods to retry if there is a notion of a deadlock.
@@ -34,11 +36,13 @@ public class HibernateDeadLockRetryAspect extends DeadLockRetryAspect {
      *            the persitence error
      * @return is a deadlock error
      */
-    protected boolean isDeadlock(final PersistenceException exception) {
+    protected boolean isDeadlock(@Nonnull final PersistenceException exception) {
         final Dialect dialect = getDialect();
-        if (dialect instanceof ErrorCodeAware && exception.getCause() instanceof GenericJDBCException) {
-            if (((ErrorCodeAware) dialect).getDeadlockErrorCodes().contains(getSQLErrorCode(exception))) {
-                return true;
+        if (dialect instanceof ErrorCodeAware) {
+            final Throwable cause = exception.getCause();
+            if (cause instanceof GenericJDBCException) {
+                final int errorCode = getSQLErrorCode((GenericJDBCException) cause);
+                return ((ErrorCodeAware) dialect).getDeadlockErrorCodes().contains(errorCode);
             }
         }
         return false;
@@ -49,9 +53,15 @@ public class HibernateDeadLockRetryAspect extends DeadLockRetryAspect {
      * 
      * @return the dialect
      */
+    @Nullable
     private Dialect getDialect() {
-        final SessionFactory sessionFactory = ((HibernateEntityManagerFactory) emf).getSessionFactory();
-        return ((SessionFactoryImplementor) sessionFactory).getDialect();
+        if (emf instanceof HibernateEntityManagerFactory) {
+            final SessionFactory sessionFactory = ((HibernateEntityManagerFactory) emf).getSessionFactory();
+            if (sessionFactory instanceof SessionFactoryImplementor) {
+                return ((SessionFactoryImplementor) sessionFactory).getDialect();
+            }
+        }
+        return null;
     }
 
     /**
@@ -62,7 +72,7 @@ public class HibernateDeadLockRetryAspect extends DeadLockRetryAspect {
      *            the persistence exception
      * @return the low level sql error code
      */
-    private int getSQLErrorCode(final PersistenceException exception) {
-        return ((GenericJDBCException) exception.getCause()).getSQLException().getErrorCode();
+    private int getSQLErrorCode(@Nonnull final GenericJDBCException exception) {
+        return exception.getSQLException().getErrorCode();
     }
 }
