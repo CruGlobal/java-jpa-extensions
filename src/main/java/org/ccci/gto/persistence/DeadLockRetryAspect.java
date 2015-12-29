@@ -30,32 +30,47 @@ public abstract class DeadLockRetryAspect implements Ordered {
     private int defaultAttempts = 3;
 
     /**
-     * Deadlock retry. The aspect applies to every service method with the
-     * annotation {@link DeadLockRetry}
-     * 
-     * @param pjp
-     *            the joinpoint
-     * @param deadLockRetry
-     *            the concurrency retry
-     * @return
-     * 
-     * @throws Throwable
-     *             the throwable
+     * Deadlock retry. The aspect applies to every service method with the annotation {@link DeadLockRetry}
+     *
+     * @param pjp           the joinpoint
+     * @param deadlockRetry the
+     * @return the return value from the joinpoint
+     * @throws Throwable any throwable thrown by the {@link ProceedingJoinPoint}
      */
-    @Around(value = "@annotation(deadLockRetry)", argNames = "deadLockRetry")
-    public Object concurrencyRetry(final ProceedingJoinPoint pjp, final DeadLockRetry deadLockRetry) throws Throwable {
-        int attemptsRemaining = deadLockRetry.attempts();
+    @Around(value = "@annotation(deadlockRetry)", argNames = "deadlockRetry")
+    public Object deadlockRetry(final ProceedingJoinPoint pjp, final DeadLockRetry deadlockRetry) throws Throwable {
+        int attempts = deadlockRetry.attempts();
+        if (attempts == -1) {
+            attempts = defaultAttempts;
+        }
+        return internalDeadlockRetry(pjp, attempts);
+    }
+
+    /**
+     * Deadlock retry. This method is used for &gt;aop:advice /&lt; XML config.
+     *
+     * @param pjp
+     * @return
+     * @throws Throwable
+     */
+    public Object deadlockRetry(final ProceedingJoinPoint pjp) throws Throwable {
+        return internalDeadlockRetry(pjp, defaultAttempts);
+    }
+
+    private Object internalDeadlockRetry(final ProceedingJoinPoint pjp, int attempts) throws Throwable {
+        LOG.trace("entering DeadLockRetry");
 
         // loop until we complete successfully or have too many deadlock exceptions
+        final boolean inTransaction = em.isJoinedToTransaction();
         while (true) {
             try {
                 // attempt to proceed
                 return pjp.proceed();
             } catch (final PersistenceException e) {
                 // handle deadlock exceptions when we still have attempts remaining
-                if (attemptsRemaining > 0 && this.isDeadlock(e)) {
-                    LOG.error("Deadlocked", e);
-                    attemptsRemaining--;
+                if (!inTransaction && attempts > 0 && this.isDeadlock(e)) {
+                    LOG.error("Deadlocked, attempts remaining: {}", attempts, e);
+                    attempts--;
                     continue;
                 }
 
@@ -67,9 +82,8 @@ public abstract class DeadLockRetryAspect implements Ordered {
 
     /**
      * check if the exception is a deadlock error.
-     * 
-     * @param exception
-     *            the persitence error
+     *
+     * @param exception the persistence error
      * @return is a deadlock error
      */
     protected abstract boolean isDeadlock(@Nonnull PersistenceException exception);
