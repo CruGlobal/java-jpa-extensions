@@ -12,19 +12,17 @@ import javax.persistence.PersistenceException;
 
 /**
  * This Aspect will cause methods to retry if there is a notion of a deadlock.
- * 
- * <emf>Note that the aspect implements the Ordered interface so we can set the
- * precedence of the aspect higher than the transaction advice (we want a fresh
- * transaction each time we retry).</emf>
- * 
- * @author Jelle Victoor
- * @version 04-jul-2011 handles deadlocks
+ *
+ * <emf>Note that the aspect implements the Ordered interface so we can set the precedence of the aspect higher than
+ * the transaction advice (we want a fresh transaction each time we retry).</emf>
  */
 @Aspect
 public abstract class DeadLockRetryAspect implements Ordered {
     private static final Logger LOG = LoggerFactory.getLogger(DeadLockRetryAspect.class);
 
     private int order = -1;
+
+    private int defaultAttempts = 3;
 
     /**
      * Deadlock retry. The aspect applies to every service method with the
@@ -41,7 +39,7 @@ public abstract class DeadLockRetryAspect implements Ordered {
      */
     @Around(value = "@annotation(deadLockRetry)", argNames = "deadLockRetry")
     public Object concurrencyRetry(final ProceedingJoinPoint pjp, final DeadLockRetry deadLockRetry) throws Throwable {
-        int attemptsRemaining = deadLockRetry.retryCount();
+        int attemptsRemaining = deadLockRetry.attempts();
 
         // loop until we complete successfully or have too many deadlock exceptions
         while (true) {
@@ -71,7 +69,15 @@ public abstract class DeadLockRetryAspect implements Ordered {
      */
     protected abstract boolean isDeadlock(@Nonnull PersistenceException exception);
 
-    /** {@inheritDoc} */
+    public int getDefaultAttempts() {
+        return defaultAttempts;
+    }
+
+    public void setDefaultAttempts(final int attempts) {
+        this.defaultAttempts = attempts;
+    }
+
+    @Override
     public int getOrder() {
         return this.order;
     }

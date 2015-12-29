@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface DeadLockRetry {
     /**
-     * Retry count. default value 3
+     * Retry count. -1 indicates to use the default number of retries.
      */
-    int retryCount() default 3;
+    int attempts() default -1;
 }
