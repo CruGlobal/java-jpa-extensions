@@ -28,7 +28,7 @@ public class HibernateDeadLockRetryAspect extends DeadLockRetryAspect {
             final Throwable cause = exception.getCause();
             if (cause instanceof GenericJDBCException) {
                 final int errorCode = getSQLErrorCode((GenericJDBCException) cause);
-                return ((ErrorCodeAware) dialect).getDeadlockErrorCodes().contains(errorCode);
+                return ((ErrorCodeAware) dialect).isDeadlockErrorCode(errorCode);
             }
         }
         return false;

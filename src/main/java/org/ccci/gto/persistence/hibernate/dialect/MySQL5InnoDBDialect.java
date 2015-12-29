@@ -1,20 +1,17 @@
 package org.ccci.gto.persistence.hibernate.dialect;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.ccci.gto.persistence.hibernate.ErrorCodeAware;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
 public class MySQL5InnoDBDialect extends org.hibernate.dialect.MySQL5InnoDBDialect implements ErrorCodeAware {
-    private static final Set<Integer> DEADLOCK_ERROR_CODES = new HashSet<Integer>();
-    static {
-        DEADLOCK_ERROR_CODES.add(1205);
-        DEADLOCK_ERROR_CODES.add(1213);
-    }
+    static final Collection<Integer> INNODB_DEADLOCK_ERROR_CODES = Collections.unmodifiableList(Arrays.asList(1205,
+            1213));
 
     @Override
-    public Set<Integer> getDeadlockErrorCodes() {
-        return Collections.unmodifiableSet(DEADLOCK_ERROR_CODES);
+    public boolean isDeadlockErrorCode(final int error) {
+        return INNODB_DEADLOCK_ERROR_CODES.contains(error);
     }
 }
