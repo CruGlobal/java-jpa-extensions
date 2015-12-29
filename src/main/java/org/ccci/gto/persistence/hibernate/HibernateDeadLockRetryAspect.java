@@ -12,23 +12,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceException;
-import javax.persistence.PersistenceUnit;
 
-/**
- * This Aspect will cause methods to retry if there is a notion of a deadlock.
- * 
- * <emf>Note that the aspect implements the Ordered interface so we can set the
- * precedence of the aspect higher than the transaction advice (we want a fresh
- * transaction each time we retry).</emf>
- * 
- * @author Jelle Victoor
- * @version 04-jul-2011 handles deadlocks
- */
 @Aspect
 public class HibernateDeadLockRetryAspect extends DeadLockRetryAspect {
-    @PersistenceUnit
-    private EntityManagerFactory emf;
-
     /**
      * check if the exception is a deadlock error.
      * 
@@ -55,6 +41,7 @@ public class HibernateDeadLockRetryAspect extends DeadLockRetryAspect {
      */
     @Nullable
     private Dialect getDialect() {
+        final EntityManagerFactory emf = em.getEntityManagerFactory();
         if (emf instanceof HibernateEntityManagerFactory) {
             final SessionFactory sessionFactory = ((HibernateEntityManagerFactory) emf).getSessionFactory();
             if (sessionFactory instanceof SessionFactoryImplementor) {

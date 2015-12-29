@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 
 /**
@@ -20,7 +22,10 @@ import javax.persistence.PersistenceException;
 public abstract class DeadLockRetryAspect implements Ordered {
     private static final Logger LOG = LoggerFactory.getLogger(DeadLockRetryAspect.class);
 
-    private int order = -1;
+    @PersistenceContext
+    protected EntityManager em;
+
+    private int order = LOWEST_PRECEDENCE;
 
     private int defaultAttempts = 3;
 
