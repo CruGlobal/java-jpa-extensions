@@ -35,8 +35,8 @@ import java.util.concurrent.Future;
 public class HibernateDeadlockRetryAspectTest {
     private static final Logger LOG = LoggerFactory.getLogger(HibernateDeadlockRetryAspectTest.class);
 
-    private static final int SLEEP_TIME = 50;
-    private static final int THREADS = 4;
+    private static final int SLEEP_TIME = 100;
+    private static final int THREADS = 3;
 
     private static final SecureRandom RAND = new SecureRandom();
     private static ExecutorService EXECUTOR;
