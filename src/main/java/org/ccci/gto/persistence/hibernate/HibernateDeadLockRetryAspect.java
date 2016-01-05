@@ -2,10 +2,11 @@ package org.ccci.gto.persistence.hibernate;
 
 import org.aspectj.lang.annotation.Aspect;
 import org.ccci.gto.persistence.DeadLockRetryAspect;
+import org.hibernate.JDBCException;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.exception.GenericJDBCException;
+import org.hibernate.internal.util.JdbcExceptionHelper;
 import org.hibernate.jpa.HibernateEntityManagerFactory;
 
 import javax.annotation.Nonnull;
@@ -22,13 +23,15 @@ public class HibernateDeadLockRetryAspect extends DeadLockRetryAspect {
      *            the persitence error
      * @return is a deadlock error
      */
-    protected boolean isDeadlock(@Nonnull final PersistenceException exception) {
-        final Dialect dialect = getDialect();
-        if (dialect instanceof ErrorCodeAware) {
-            final Throwable cause = exception.getCause();
-            if (cause instanceof GenericJDBCException) {
-                final int errorCode = getSQLErrorCode((GenericJDBCException) cause);
-                return ((ErrorCodeAware) dialect).isDeadlockErrorCode(errorCode);
+    protected boolean isImplDeadlock(@Nonnull final Throwable exception) {
+        if (exception instanceof PersistenceException) {
+            final Dialect dialect = getDialect();
+            if (dialect instanceof ErrorCodeAware) {
+                final Throwable cause = exception.getCause();
+                if (cause instanceof JDBCException) {
+                    final int code = JdbcExceptionHelper.extractErrorCode(((JDBCException) cause).getSQLException());
+                    return ((ErrorCodeAware) dialect).isDeadlockErrorCode(code);
+                }
             }
         }
         return false;
@@ -49,17 +52,5 @@ public class HibernateDeadLockRetryAspect extends DeadLockRetryAspect {
             }
         }
         return null;
-    }
-
-    /**
-     * extracts the low level sql error code from the
-     * {@link PersistenceException}
-     * 
-     * @param exception
-     *            the persistence exception
-     * @return the low level sql error code
-     */
-    private int getSQLErrorCode(@Nonnull final GenericJDBCException exception) {
-        return exception.getSQLException().getErrorCode();
     }
 }

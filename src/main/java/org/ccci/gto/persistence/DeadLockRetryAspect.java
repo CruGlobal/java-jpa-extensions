@@ -6,11 +6,12 @@ import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
+import org.springframework.dao.ConcurrencyFailureException;
 
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
+import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceException;
 
 /**
  * This Aspect will cause methods to retry if there is a notion of a deadlock.
@@ -66,7 +67,7 @@ public abstract class DeadLockRetryAspect implements Ordered {
             try {
                 // attempt to proceed
                 return pjp.proceed();
-            } catch (final PersistenceException e) {
+            } catch (final Throwable e) {
                 // handle deadlock exceptions when we still have attempts remaining
                 if (!inTransaction && attempts > 0 && this.isDeadlock(e)) {
                     LOG.error("Deadlocked, attempts remaining: {}", attempts, e);
@@ -80,13 +81,17 @@ public abstract class DeadLockRetryAspect implements Ordered {
         }
     }
 
+    private boolean isDeadlock(@Nonnull final Throwable e) {
+        return e instanceof OptimisticLockException || e instanceof ConcurrencyFailureException || isImplDeadlock(e);
+    }
+
     /**
      * check if the exception is a deadlock error.
      *
      * @param exception the persistence error
      * @return is a deadlock error
      */
-    protected abstract boolean isDeadlock(@Nonnull PersistenceException exception);
+    protected abstract boolean isImplDeadlock(@Nonnull Throwable exception);
 
     public int getDefaultAttempts() {
         return defaultAttempts;
