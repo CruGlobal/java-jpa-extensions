@@ -9,12 +9,12 @@
   </parent>
 
   <artifactId>extension-persistence</artifactId>
-  <version>0.3.2-SNAPSHOT</version>
+  <version>0.3.2</version>
 
   <scm>
     <connection>scm:git:git@git.gcx.org:java/extension-persistence.git</connection>
     <developerConnection>scm:git:git@git.gcx.org:java/extension-persistence.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>v0.3.2</tag>
   </scm>
 
   <properties>
