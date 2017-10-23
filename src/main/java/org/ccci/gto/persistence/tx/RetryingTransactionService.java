@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 public interface RetryingTransactionService extends TransactionService, RetryingReadOnlyTransactionService {
     @DeadLockRetry
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    default void inRetryingTransaction(Runnable command) {
+    default void inRetryingTransaction(@Nonnull final Runnable command) {
         command.run();
     }
 
