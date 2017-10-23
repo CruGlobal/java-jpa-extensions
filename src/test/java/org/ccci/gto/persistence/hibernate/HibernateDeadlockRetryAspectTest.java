@@ -75,42 +75,33 @@ public class HibernateDeadlockRetryAspectTest {
         for (int i = 0; i < THREADS; i++) {
             ids.add(RAND.nextInt(Integer.MAX_VALUE));
         }
-        txService.inTransaction(new Runnable() {
-            @Override
-            public void run() {
-                for (int id : ids) {
-                    em.merge(new SimpleObject(id));
-                }
-            }
+        txService.inTransaction(() -> {
+            ids.stream()
+                    .map(SimpleObject::new)
+                    .forEach(em::merge);
         });
 
         // execute simultaneous updates
-        final Callable<Void> task = new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                // shuffle list order
-                final List<Integer> shuffled = new ArrayList<>(ids);
-                if (shuffle) {
-                    Collections.shuffle(shuffled, RAND);
-                }
-
-                // execute actual transaction
-                return txService.inRetryingTransaction(new Callable<Void>() {
-                    @Override
-                    public Void call() throws Exception {
-                        for (final int id : shuffled) {
-                            final SimpleObject obj = em.find(SimpleObject.class, id, lockMode);
-                            obj.counter++;
-                            if (flush) {
-                                em.flush();
-                            }
-                            Thread.sleep(RAND.nextInt(SLEEP_TIME));
-                            LOG.info("updated {} {}", obj.id, obj.counter);
-                        }
-                        return null;
-                    }
-                });
+        final Callable<Void> task = () -> {
+            // shuffle list order
+            final List<Integer> shuffled = new ArrayList<>(ids);
+            if (shuffle) {
+                Collections.shuffle(shuffled, RAND);
             }
+
+            // execute actual transaction
+            return txService.inRetryingTransaction(() -> {
+                for (final int id : shuffled) {
+                    final SimpleObject obj = em.find(SimpleObject.class, id, lockMode);
+                    obj.counter++;
+                    if (flush) {
+                        em.flush();
+                    }
+                    Thread.sleep(RAND.nextInt(SLEEP_TIME));
+                    LOG.info("updated {} {}", obj.id, obj.counter);
+                }
+                return null;
+            });
         };
         final List<Future<Void>> tasks = new ArrayList<>();
         for (int i = 0; i < THREADS; i++) {
@@ -128,12 +119,9 @@ public class HibernateDeadlockRetryAspectTest {
         }
 
         // test final results
-        txService.inTransaction(new Runnable() {
-            @Override
-            public void run() {
-                for (final int id : ids) {
-                    assertEquals(THREADS, em.find(SimpleObject.class, id).counter);
-                }
+        txService.inTransaction(() -> {
+            for (final int id : ids) {
+                assertEquals(THREADS, em.find(SimpleObject.class, id).counter);
             }
         });
     }

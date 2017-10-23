@@ -1,9 +1,21 @@
 package org.ccci.gto.persistence.tx;
 
-import java.util.concurrent.Callable;
+import org.ccci.gto.persistence.DeadLockRetry;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Nonnull;
 
 public interface RetryingReadOnlyTransactionService extends ReadOnlyTransactionService {
-    void inRetryingReadOnlyTransaction(Runnable command);
+    @DeadLockRetry
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    default void inRetryingReadOnlyTransaction(@Nonnull final Runnable command) {
+        command.run();
+    }
 
-    <T> T inRetryingReadOnlyTransaction(Callable<T> command) throws Exception;
+    @DeadLockRetry
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    default <T, X extends Throwable> T inRetryingReadOnlyTransaction(@Nonnull final Closure<T, X> command) throws X {
+        return command.run();
+    }
 }
