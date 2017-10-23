@@ -1,9 +1,17 @@
 package org.ccci.gto.persistence.tx;
 
-import java.util.concurrent.Callable;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Nonnull;
 
 public interface ReadOnlyTransactionService {
-    void inReadOnlyTransaction(Runnable command);
+    @Transactional(readOnly = true)
+    default void inReadOnlyTransaction(@Nonnull final Runnable command) {
+        command.run();
+    }
 
-    <T> T inReadOnlyTransaction(Callable<T> command) throws Exception;
+    @Transactional(readOnly = true)
+    default <T, X extends Throwable> T inReadOnlyTransaction(@Nonnull final Closure<T, X> command) throws X {
+        return command.run();
+    }
 }
