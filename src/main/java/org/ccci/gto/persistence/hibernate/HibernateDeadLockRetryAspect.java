@@ -11,6 +11,7 @@ import org.hibernate.jpa.HibernateEntityManagerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceException;
 
@@ -23,9 +24,9 @@ public class HibernateDeadLockRetryAspect extends DeadLockRetryAspect {
      *            the persitence error
      * @return is a deadlock error
      */
-    protected boolean isImplDeadlock(@Nonnull final Throwable exception) {
+    protected boolean isImplDeadlock(@Nonnull final EntityManager em, @Nonnull final Throwable exception) {
         if (exception instanceof PersistenceException) {
-            final Dialect dialect = getDialect();
+            final Dialect dialect = getDialect(em);
             if (dialect instanceof ErrorCodeAware) {
                 final Throwable cause = exception.getCause();
                 if (cause instanceof JDBCException) {
@@ -43,7 +44,7 @@ public class HibernateDeadLockRetryAspect extends DeadLockRetryAspect {
      * @return the dialect
      */
     @Nullable
-    private Dialect getDialect() {
+    private Dialect getDialect(@Nonnull final EntityManager em) {
         final EntityManagerFactory emf = em.getEntityManagerFactory();
         if (emf instanceof HibernateEntityManagerFactory) {
             final SessionFactory sessionFactory = ((HibernateEntityManagerFactory) emf).getSessionFactory();

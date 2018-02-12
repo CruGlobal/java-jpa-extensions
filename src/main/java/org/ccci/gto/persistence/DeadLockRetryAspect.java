@@ -24,7 +24,7 @@ public abstract class DeadLockRetryAspect implements Ordered {
     private static final Logger LOG = LoggerFactory.getLogger(DeadLockRetryAspect.class);
 
     @PersistenceContext
-    protected EntityManager em;
+    protected EntityManager defaultEntityManager;
 
     private int order = LOWEST_PRECEDENCE;
 
@@ -44,7 +44,7 @@ public abstract class DeadLockRetryAspect implements Ordered {
         if (attempts == -1) {
             attempts = defaultAttempts;
         }
-        return internalDeadlockRetry(pjp, attempts);
+        return internalDeadlockRetry(pjp, defaultEntityManager, attempts);
     }
 
     /**
@@ -55,10 +55,11 @@ public abstract class DeadLockRetryAspect implements Ordered {
      * @throws Throwable
      */
     public Object deadlockRetry(final ProceedingJoinPoint pjp) throws Throwable {
-        return internalDeadlockRetry(pjp, defaultAttempts);
+        return internalDeadlockRetry(pjp, defaultEntityManager, defaultAttempts);
     }
 
-    private Object internalDeadlockRetry(final ProceedingJoinPoint pjp, int attempts) throws Throwable {
+    private Object internalDeadlockRetry(final ProceedingJoinPoint pjp, @Nonnull final EntityManager em, int attempts)
+            throws Throwable {
         LOG.trace("entering DeadLockRetry");
 
         // loop until we complete successfully or have too many deadlock exceptions
@@ -69,7 +70,7 @@ public abstract class DeadLockRetryAspect implements Ordered {
                 return pjp.proceed();
             } catch (final Throwable e) {
                 // handle deadlock exceptions when we still have attempts remaining
-                if (!inTransaction && attempts > 0 && this.isDeadlock(e)) {
+                if (!inTransaction && attempts > 0 && isDeadlock(em, e)) {
                     LOG.error("Deadlocked, attempts remaining: {}", attempts, e);
                     attempts--;
                     continue;
@@ -81,8 +82,9 @@ public abstract class DeadLockRetryAspect implements Ordered {
         }
     }
 
-    private boolean isDeadlock(@Nonnull final Throwable e) {
-        return e instanceof OptimisticLockException || e instanceof ConcurrencyFailureException || isImplDeadlock(e);
+    private boolean isDeadlock(@Nonnull final EntityManager em, @Nonnull final Throwable e) {
+        return e instanceof OptimisticLockException || e instanceof ConcurrencyFailureException ||
+                isImplDeadlock(em, e);
     }
 
     /**
@@ -91,7 +93,7 @@ public abstract class DeadLockRetryAspect implements Ordered {
      * @param exception the persistence error
      * @return is a deadlock error
      */
-    protected abstract boolean isImplDeadlock(@Nonnull Throwable exception);
+    protected abstract boolean isImplDeadlock(@Nonnull EntityManager em, @Nonnull Throwable exception);
 
     public int getDefaultAttempts() {
         return defaultAttempts;
