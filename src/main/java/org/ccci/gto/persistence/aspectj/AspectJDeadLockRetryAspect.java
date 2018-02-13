@@ -1,10 +1,12 @@
-package org.ccci.gto.persistence;
+package org.ccci.gto.persistence.aspectj;
 
 import static org.ccci.gto.persistence.DeadLockRetry.DEFAULT_ATTEMPTS;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.ccci.gto.persistence.DeadLockRetry;
+import org.ccci.gto.persistence.DeadLockRetryAspectSupport;
 import org.springframework.core.Ordered;
 
 import javax.annotation.Nonnull;
@@ -16,7 +18,7 @@ import javax.annotation.Nonnull;
  * the transaction advice (we want a fresh transaction each time we retry).</emf>
  */
 @Aspect
-public abstract class DeadLockRetryAspect extends DeadLockRetryAspectSupport implements Ordered {
+public class AspectJDeadLockRetryAspect extends DeadLockRetryAspectSupport implements Ordered {
     /**
      * Deadlock retry. The aspect applies to every service method with the annotation {@link DeadLockRetry}
      *

@@ -10,22 +10,33 @@ import org.springframework.core.Ordered;
 import org.springframework.dao.ConcurrencyFailureException;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.OptimisticLockException;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
-abstract class DeadLockRetryAspectSupport implements Ordered {
+public abstract class DeadLockRetryAspectSupport implements Ordered {
     private static final Logger LOG = LoggerFactory.getLogger(DeadLockRetryAspectSupport.class);
 
     @NotNull
-    @Autowired
     private EntityManagerResolver entityManagerResolver;
+
+    @Nonnull
+    private List<DeadLockDetector> deadLockDetectors = new ArrayList<>();
 
     private int defaultAttempts = 3;
 
     private int order = LOWEST_PRECEDENCE;
 
+    @Autowired(required = false)
+    public void setDeadLockDetectors(@Nullable final List<DeadLockDetector> detectors) {
+        deadLockDetectors = detectors != null ? detectors : new ArrayList<>();
+    }
+
+    @Autowired
     public void setEntityManagerResolver(@Nonnull final EntityManagerResolver resolver) {
         entityManagerResolver = resolver;
     }
@@ -42,15 +53,14 @@ abstract class DeadLockRetryAspectSupport implements Ordered {
     /**
      * Sets the order.
      *
-     * @param order
-     *            the order to set
+     * @param order the order to set
      */
     public void setOrder(final int order) {
         this.order = order;
     }
 
     @Nonnull
-    protected final Optional<EntityManager> resolveEntityManager(@Nonnull final String unitName) {
+    private Optional<EntityManager> resolveEntityManager(@Nonnull final String unitName) {
         return "".equals(unitName) ? entityManagerResolver.defaultEntityManager() :
                 entityManagerResolver.resolveEntityManager(unitName);
     }
@@ -86,14 +96,6 @@ abstract class DeadLockRetryAspectSupport implements Ordered {
 
     private boolean isDeadlock(@Nonnull final EntityManager em, @Nonnull final Throwable e) {
         return e instanceof OptimisticLockException || e instanceof ConcurrencyFailureException ||
-                isImplDeadlock(em, e);
+                deadLockDetectors.stream().anyMatch(d -> d.isDeadlock(em, e));
     }
-
-    /**
-     * check if the exception is a deadlock error.
-     *
-     * @param exception the persistence error
-     * @return is a deadlock error
-     */
-    protected abstract boolean isImplDeadlock(@Nonnull EntityManager em, @Nonnull Throwable exception);
 }

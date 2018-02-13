@@ -1,7 +1,6 @@
 package org.ccci.gto.persistence.hibernate;
 
-import org.aspectj.lang.annotation.Aspect;
-import org.ccci.gto.persistence.DeadLockRetryAspect;
+import org.ccci.gto.persistence.DeadLockDetector;
 import org.hibernate.JDBCException;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.Dialect;
@@ -15,16 +14,16 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceException;
 
-@Aspect
-public class HibernateDeadLockRetryAspect extends DeadLockRetryAspect {
+public class HibernateDeadLockDetector implements DeadLockDetector {
     /**
      * check if the exception is a deadlock error.
-     * 
+     *
      * @param exception
      *            the persitence error
      * @return is a deadlock error
      */
-    protected boolean isImplDeadlock(@Nonnull final EntityManager em, @Nonnull final Throwable exception) {
+    @Override
+    public boolean isDeadlock(@Nonnull final EntityManager em, @Nonnull final Throwable exception) {
         if (exception instanceof PersistenceException) {
             final Dialect dialect = getDialect(em);
             if (dialect instanceof ErrorCodeAware) {
@@ -40,7 +39,7 @@ public class HibernateDeadLockRetryAspect extends DeadLockRetryAspect {
 
     /**
      * Returns the currently used dialect
-     * 
+     *
      * @return the dialect
      */
     @Nullable

@@ -43,11 +43,13 @@
   <tx:annotation-driven transaction-manager="transactionManager" order="200" />
 
   <aop:aspectj-autoproxy />
-  <bean id="deadlockRetryAspectBean" class="org.ccci.gto.persistence.hibernate.HibernateDeadLockRetryAspect"
+  <bean id="deadlockRetryAspectBean" class="org.ccci.gto.persistence.aspectj.AspectJDeadLockRetryAspect"
       p:defaultAttempts="15"
       p:order="100" />
 
   <bean class="org.ccci.gto.persistence.DefaultEntityManagerResolver" />
 
   <bean class="org.ccci.gto.persistence.tx.DefaultRetryingTransactionService" />
+
+  <bean class="org.ccci.gto.persistence.hibernate.HibernateDeadLockDetector" />
 </beans>
