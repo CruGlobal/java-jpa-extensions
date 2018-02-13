@@ -47,5 +47,7 @@
       p:defaultAttempts="15"
       p:order="100" />
 
+  <bean class="org.ccci.gto.persistence.DefaultEntityManagerResolver" />
+
   <bean class="org.ccci.gto.persistence.tx.DefaultRetryingTransactionService" />
 </beans>

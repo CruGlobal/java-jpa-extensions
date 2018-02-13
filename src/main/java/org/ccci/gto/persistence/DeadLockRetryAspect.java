@@ -5,13 +5,14 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.dao.ConcurrencyFailureException;
 
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.OptimisticLockException;
-import javax.persistence.PersistenceContext;
+import java.util.Optional;
 
 /**
  * This Aspect will cause methods to retry if there is a notion of a deadlock.
@@ -23,12 +24,12 @@ import javax.persistence.PersistenceContext;
 public abstract class DeadLockRetryAspect implements Ordered {
     private static final Logger LOG = LoggerFactory.getLogger(DeadLockRetryAspect.class);
 
-    @PersistenceContext
-    protected EntityManager defaultEntityManager;
-
     private int order = LOWEST_PRECEDENCE;
 
     private int defaultAttempts = 3;
+
+    @Autowired
+    private EntityManagerResolver entityManagerResolver;
 
     /**
      * Deadlock retry. The aspect applies to every service method with the annotation {@link DeadLockRetry}
@@ -44,33 +45,40 @@ public abstract class DeadLockRetryAspect implements Ordered {
         if (attempts == -1) {
             attempts = defaultAttempts;
         }
-        return internalDeadlockRetry(pjp, defaultEntityManager, attempts);
+        return internalDeadlockRetry(pjp, deadlockRetry.unitName(), attempts);
     }
 
     /**
-     * Deadlock retry. This method is used for &gt;aop:advice /&lt; XML config.
-     *
-     * @param pjp
-     * @return
-     * @throws Throwable
+     * Deadlock retry. This method can be used for &gt;aop:advice /&lt; XML config.
      */
     public Object deadlockRetry(final ProceedingJoinPoint pjp) throws Throwable {
-        return internalDeadlockRetry(pjp, defaultEntityManager, defaultAttempts);
+        return internalDeadlockRetry(pjp, "", defaultAttempts);
     }
 
-    private Object internalDeadlockRetry(final ProceedingJoinPoint pjp, @Nonnull final EntityManager em, int attempts)
+    public Object deadlockRetry(final ProceedingJoinPoint pjp, @Nonnull final String unitName) throws Throwable {
+        return internalDeadlockRetry(pjp, unitName, defaultAttempts);
+    }
+
+    @Nonnull
+    private Optional<EntityManager> resolveEntityManager(@Nonnull final String unitName) {
+        return "".equals(unitName) ? entityManagerResolver.defaultEntityManager() :
+                entityManagerResolver.resolveEntityManager(unitName);
+    }
+
+    private Object internalDeadlockRetry(final ProceedingJoinPoint pjp, @Nonnull final String unitName, int attempts)
             throws Throwable {
         LOG.trace("entering DeadLockRetry");
 
         // loop until we complete successfully or have too many deadlock exceptions
-        final boolean inTransaction = em.isJoinedToTransaction();
+        final EntityManager em = resolveEntityManager(unitName).orElse(null);
+        final boolean inTransaction = em != null && em.isJoinedToTransaction();
         while (true) {
             try {
                 // attempt to proceed
                 return pjp.proceed();
             } catch (final Throwable e) {
                 // handle deadlock exceptions when we still have attempts remaining
-                if (!inTransaction && attempts > 0 && isDeadlock(em, e)) {
+                if (em != null && !inTransaction && attempts > 0 && isDeadlock(em, e)) {
                     LOG.error("Deadlocked, attempts remaining: {}", attempts, e);
                     attempts--;
                     continue;
@@ -101,6 +109,10 @@ public abstract class DeadLockRetryAspect implements Ordered {
 
     public void setDefaultAttempts(final int attempts) {
         this.defaultAttempts = attempts;
+    }
+
+    public void setEntityManagerResolver(@Nonnull final EntityManagerResolver resolver) {
+        entityManagerResolver = resolver;
     }
 
     @Override
