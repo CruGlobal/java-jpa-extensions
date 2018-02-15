@@ -36,14 +36,15 @@ public class AspectJDeadLockRetryAspect extends DeadLockRetryAspectSupport imple
      * Deadlock retry. This method can be used for &gt;aop:advice /&lt; XML config.
      */
     public Object deadlockRetry(final ProceedingJoinPoint pjp) throws Throwable {
-        return wrapJoinPoint(pjp::proceed, "", DEFAULT_ATTEMPTS);
+        return deadlockRetry(pjp, "", DEFAULT_ATTEMPTS);
     }
 
     public Object deadlockRetry(final ProceedingJoinPoint pjp, @Nonnull final String unitName) throws Throwable {
-        return wrapJoinPoint(pjp::proceed, unitName, DEFAULT_ATTEMPTS);
+        return deadlockRetry(pjp, unitName, DEFAULT_ATTEMPTS);
     }
 
-    public Object deadlockRetry(final ProceedingJoinPoint pjp, @Nonnull final String unitName, final int attempts) throws Throwable {
+    public Object deadlockRetry(final ProceedingJoinPoint pjp, @Nonnull final String unitName, final int attempts)
+            throws Throwable {
         return wrapJoinPoint(pjp::proceed, unitName, attempts);
     }
 }
