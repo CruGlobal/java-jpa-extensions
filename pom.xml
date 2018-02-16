@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>extension-persistence</artifactId>
-  <version>0.4.1-SNAPSHOT</version>
+  <version>0.5.0-SNAPSHOT</version>
 
   <scm>
     <connection>scm:git:git@git.gcx.org:java/extension-persistence.git</connection>
@@ -26,16 +26,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.aspectj</groupId>
-      <artifactId>aspectjrt</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-entitymanager</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
@@ -48,12 +38,40 @@
       <artifactId>spring-tx</artifactId>
     </dependency>
 
+    <!-- AspectJ dependencies -->
+    <dependency>
+      <groupId>org.aspectj</groupId>
+      <artifactId>aspectjrt</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Hibernate dependencies -->
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-entitymanager</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Spring AOP dependencies -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-aop</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Annotation dependencies -->
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>javax.validation</groupId>
+      <artifactId>validation-api</artifactId>
+      <optional>true</optional>
+    </dependency>
 
+    <!-- Test dependencies -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
