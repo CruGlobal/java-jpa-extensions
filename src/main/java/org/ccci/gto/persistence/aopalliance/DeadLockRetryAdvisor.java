@@ -14,10 +14,10 @@ public final class DeadLockRetryAdvisor extends DeadLockRetryMethodInterceptorFa
     private final MethodInterceptor defaultAdvice = invocation -> {
         final DeadLockRetry deadLockRetry = invocation.getMethod().getAnnotation(DeadLockRetry.class);
         if (deadLockRetry != null) {
-            return wrapJoinPoint(invocation::proceed, deadLockRetry.unitName(), deadLockRetry.attempts());
+            return executeWithDeadlockRetry(invocation::proceed, deadLockRetry.unitName(), deadLockRetry.attempts());
         }
 
-        return wrapJoinPoint(invocation::proceed, "", DEFAULT_ATTEMPTS);
+        return executeWithDeadlockRetry(invocation::proceed, "", DEFAULT_ATTEMPTS);
     };
 
     public DeadLockRetryAdvisor() {

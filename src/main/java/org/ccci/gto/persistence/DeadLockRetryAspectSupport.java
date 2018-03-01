@@ -65,8 +65,9 @@ public abstract class DeadLockRetryAspectSupport implements Ordered {
                 entityManagerResolver.resolveEntityManager(unitName);
     }
 
-    protected final <X extends Throwable> Object wrapJoinPoint(@Nonnull final Closure<Object, X> joinPoint,
-                                                               @Nonnull final String unitName, int attempts) throws X {
+    protected final <X extends Throwable> Object executeWithDeadlockRetry(@Nonnull final Closure<Object, X> joinPoint,
+                                                                          @Nonnull final String unitName,
+                                                                          int attempts) throws X {
         if (attempts == DEFAULT_ATTEMPTS) {
             attempts = defaultAttempts;
         }

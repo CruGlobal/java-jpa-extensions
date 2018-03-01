@@ -17,6 +17,6 @@ public class DeadLockRetryMethodInterceptorFactory extends DeadLockRetryAspectSu
     }
 
     private MethodInterceptor createAdvice(@Nonnull final String unitName) {
-        return invocation -> wrapJoinPoint(invocation::proceed, unitName, DEFAULT_ATTEMPTS);
+        return invocation -> executeWithDeadlockRetry(invocation::proceed, unitName, DEFAULT_ATTEMPTS);
     }
 }

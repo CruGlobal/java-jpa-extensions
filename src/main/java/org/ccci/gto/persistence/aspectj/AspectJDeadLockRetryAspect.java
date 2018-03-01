@@ -29,7 +29,7 @@ public class AspectJDeadLockRetryAspect extends DeadLockRetryAspectSupport imple
      */
     @Around(value = "@annotation(deadlockRetry)", argNames = "deadlockRetry")
     public Object deadlockRetry(final ProceedingJoinPoint pjp, final DeadLockRetry deadlockRetry) throws Throwable {
-        return wrapJoinPoint(pjp::proceed, deadlockRetry.unitName(), deadlockRetry.attempts());
+        return executeWithDeadlockRetry(pjp::proceed, deadlockRetry.unitName(), deadlockRetry.attempts());
     }
 
     /**
@@ -45,6 +45,6 @@ public class AspectJDeadLockRetryAspect extends DeadLockRetryAspectSupport imple
 
     public Object deadlockRetry(final ProceedingJoinPoint pjp, @Nonnull final String unitName, final int attempts)
             throws Throwable {
-        return wrapJoinPoint(pjp::proceed, unitName, attempts);
+        return executeWithDeadlockRetry(pjp::proceed, unitName, attempts);
     }
 }
