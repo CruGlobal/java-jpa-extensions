@@ -84,7 +84,12 @@ public abstract class DeadLockRetryAspectSupport implements Ordered {
             } catch (final Throwable e) {
                 // handle deadlock exceptions when we still have attempts remaining
                 if (em != null && !inTransaction && attempts > 0 && isDeadlock(em, e)) {
-                    LOG.error("Deadlocked, attempts remaining: {}", attempts, e);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Deadlocked, attempts remaining: {}", attempts, e);
+                    } else {
+                        LOG.warn("Deadlocked, attempts remaining: {}", attempts);
+                    }
+
                     attempts--;
                     continue;
                 }
