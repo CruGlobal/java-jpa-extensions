@@ -12,8 +12,8 @@
   <version>0.5.1-SNAPSHOT</version>
 
   <scm>
-    <connection>scm:git:git@git.gcx.org:java/extension-persistence.git</connection>
-    <developerConnection>scm:git:git@git.gcx.org:java/extension-persistence.git</developerConnection>
+    <connection>scm:git:git@github.com:CruGlobal/java-jpa-extensions.git</connection>
+    <developerConnection>scm:git:git@github.com:CruGlobal/java-jpa-extensions.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
