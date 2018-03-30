@@ -208,6 +208,7 @@
         </executions>
       </plugin>
 
+      <!-- OSGi meta-data generation -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -227,6 +228,15 @@
             <Bundle-Name>GTO JPA Extensions</Bundle-Name>
           </instructions>
         </configuration>
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
