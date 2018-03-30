@@ -20,28 +20,41 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <aspectj.version>1.8.6</aspectj.version>
+    <hibernate.version>4.3.9.Final</hibernate.version>
     <hsqldb.version>2.3.3</hsqldb.version>
+    <javax.validation.version>1.0.0.GA</javax.validation.version>
+    <jsr305.version>3.0.0</jsr305.version>
+    <junit.version>4.11</junit.version>
+    <mysql.version>5.1.36</mysql.version>
     <slf4j.version>1.6.6</slf4j.version>
+    <spring.version>4.2.0.RELEASE</spring.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
+      <version>${spring.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-tx</artifactId>
+      <version>${spring.version}</version>
     </dependency>
 
     <!-- AspectJ dependencies -->
     <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjrt</artifactId>
+      <version>${aspectj.version}</version>
       <optional>true</optional>
     </dependency>
 
@@ -49,6 +62,7 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-entitymanager</artifactId>
+      <version>${hibernate.version}</version>
       <optional>true</optional>
     </dependency>
 
@@ -56,6 +70,7 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-aop</artifactId>
+      <version>${spring.version}</version>
       <optional>true</optional>
     </dependency>
 
@@ -63,11 +78,13 @@
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
+      <version>${jsr305.version}</version>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>javax.validation</groupId>
       <artifactId>validation-api</artifactId>
+      <version>${javax.validation.version}</version>
       <optional>true</optional>
     </dependency>
 
@@ -75,21 +92,25 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
+      <version>${spring.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-orm</artifactId>
+      <version>${spring.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
+      <version>${spring.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -113,6 +134,7 @@
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
+      <version>${mysql.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -147,6 +169,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
+        <version>2.6</version>
         <configuration>
           <archive>
             <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
@@ -156,6 +179,7 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.5.4</version>
         <configuration>
           <instructions>
             <Bundle-Name>GTO JPA Extensions</Bundle-Name>
