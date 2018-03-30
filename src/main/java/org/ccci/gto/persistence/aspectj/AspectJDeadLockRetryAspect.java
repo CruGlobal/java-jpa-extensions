@@ -14,8 +14,8 @@ import javax.annotation.Nonnull;
 /**
  * This Aspect will cause methods to retry if there is a notion of a deadlock.
  *
- * <emf>Note that the aspect implements the Ordered interface so we can set the precedence of the aspect higher than
- * the transaction advice (we want a fresh transaction each time we retry).</emf>
+ * <em>Note that the aspect implements the Ordered interface so we can set the precedence of the aspect higher than
+ * the transaction advice (we want a fresh transaction each time we retry).</em>
  */
 @Aspect
 public class AspectJDeadLockRetryAspect extends DeadLockRetryAspectSupport implements Ordered {
@@ -34,6 +34,10 @@ public class AspectJDeadLockRetryAspect extends DeadLockRetryAspectSupport imple
 
     /**
      * Deadlock retry. This method can be used for &gt;aop:advice /&lt; XML config.
+     *
+     * @param pjp the joinpoint
+     * @return the return value from the joinpoint
+     * @throws Throwable any throwable thrown by the {@link ProceedingJoinPoint}
      */
     public Object deadlockRetry(final ProceedingJoinPoint pjp) throws Throwable {
         return deadlockRetry(pjp, "", DEFAULT_ATTEMPTS);
