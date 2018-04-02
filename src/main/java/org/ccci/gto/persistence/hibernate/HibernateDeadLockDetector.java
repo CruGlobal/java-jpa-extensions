@@ -2,19 +2,20 @@ package org.ccci.gto.persistence.hibernate;
 
 import org.ccci.gto.persistence.DeadLockDetector;
 import org.hibernate.JDBCException;
-import org.hibernate.SessionFactory;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.internal.util.JdbcExceptionHelper;
-import org.hibernate.jpa.HibernateEntityManagerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceException;
+import java.util.Optional;
 
 public class HibernateDeadLockDetector implements DeadLockDetector {
+    private static final Logger LOG = LoggerFactory.getLogger(HibernateDeadLockDetector.class);
+
     /**
      * check if the exception is a deadlock error.
      *
@@ -25,12 +26,14 @@ public class HibernateDeadLockDetector implements DeadLockDetector {
     @Override
     public boolean isDeadlock(@Nonnull final EntityManager em, @Nonnull final Throwable exception) {
         if (exception instanceof PersistenceException) {
-            final Dialect dialect = getDialect(em);
-            if (dialect instanceof ErrorCodeAware) {
+            final ErrorCodeAware dialect = getDialect(em)
+                    .filter(ErrorCodeAware.class::isInstance).map(ErrorCodeAware.class::cast)
+                    .orElse(null);
+            if (dialect != null) {
                 final Throwable cause = exception.getCause();
                 if (cause instanceof JDBCException) {
                     final int code = JdbcExceptionHelper.extractErrorCode(((JDBCException) cause).getSQLException());
-                    return ((ErrorCodeAware) dialect).isDeadlockErrorCode(code);
+                    return dialect.isDeadlockErrorCode(code);
                 }
             }
         }
@@ -42,15 +45,17 @@ public class HibernateDeadLockDetector implements DeadLockDetector {
      *
      * @return the dialect
      */
-    @Nullable
-    private Dialect getDialect(@Nonnull final EntityManager em) {
-        final EntityManagerFactory emf = em.getEntityManagerFactory();
-        if (emf instanceof HibernateEntityManagerFactory) {
-            final SessionFactory sessionFactory = ((HibernateEntityManagerFactory) emf).getSessionFactory();
-            if (sessionFactory instanceof SessionFactoryImplementor) {
-                return ((SessionFactoryImplementor) sessionFactory).getDialect();
-            }
+    @Nonnull
+    private Optional<Dialect> getDialect(@Nonnull final EntityManager em) {
+        final SessionFactoryImplementor sessionFactory;
+        try {
+            sessionFactory = em.getEntityManagerFactory()
+                    .unwrap(SessionFactoryImplementor.class);
+        } catch (final PersistenceException e) {
+            LOG.debug("error unwrapping the SessionFactoryImplementor, so we can't determine the dialect", e);
+            return Optional.empty();
         }
-        return null;
+
+        return Optional.ofNullable(sessionFactory.getDialect());
     }
 }
