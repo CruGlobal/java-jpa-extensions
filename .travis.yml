@@ -1,5 +1,17 @@
 language: java
 sudo: false
+env:
+  global:
+    - DEPLOY_USERNAME=travis-ci-java-jpa-extensions
+    - secure: "1Zunn9nJtxehgkoqRKrU2g1aNawfa2wmGE0lIaC4715WCEX4hYUtiCCDPh1uXeOvLKAhFI1pieuYn8W9j6JRvgzBmJeAXL7kNnv54g/Gk8RAGCyNKM6ORVcJipDhf6o1NtO4CiHpAdSosnM2uvTJ4zuNnt7Lg5yU9tNmp+2AAvccT7InhCv7B//o687w/2S0W7XJZtEt8bV0RB8sxkPShj2mIEYa58ZAOcDthPhIouRY8OuaKDpuyXB4GELmZpMg1DLh0oU7DAEPlr5StB7ypK0KxJWDCC49CEfGacRuey13grZxp8VKg6N0kdaYHcA+P0yjWpUJOaNSA3Dy0y3sb0zjUKLQ1+qzlNcsSDB8RJCK8qIGUpXau+zhf+gkaNg9F6j/xAE4JRMUIyETtVeLQOU9uGgJ9WmAXkHMQJGdszA8d4GkJkt6NZZNX4Nfegyzjx00BCKv/fYNflTqvq/RO4nP9cY1F8VxcYypOK9fcj/KB6HhwbeWlBybWOcI4SWcxMiAoeZVdiHh+WWzSY/5pa6LejnImtKBHbXxztITR9BwqM10V1gab7oPYNYhdcynCifyfRrdWn2zHUQHRkDilb6R5MHxnRMErW7lVXkwthxyw7DOFinrklZ8JKWzUAqPnSRk9b5yccxQoOuFLVRs4t2KQVjCldevcrbRVi81OxY="
+
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: mvn deploy
+  on:
+    repo: CruGlobal/java-jpa-extensions
+    branch: master
 
 notifications:
   email: false
