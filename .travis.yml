@@ -8,7 +8,9 @@ env:
 deploy:
   provider: script
   skip_cleanup: true
-  script: mvn deploy
+  script:
+    - cp .travis.settings.xml $HOME/.m2/settings.xml
+    - mvn deploy -DskipTests=true
   on:
     repo: CruGlobal/java-jpa-extensions
     branch: master
